@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  basedatos1:
+    container_name: conmysql
+    image: mysql
+    volumes:
+      - $PWD/creaTablas.sql:/docker-entrypoint-initdb.d/initial.sql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secreto
+      MYSQL_DATABASE: basedatospersonas
+      MYSQL_USER: usuario1
+      MYSQL_PASSWORD: secreto1
+    networks:
+      - red
+  persona:
+    container_name: conpersona
+    depends_on:
+      - basedatos1
+    image: impersona
+    build: serviciopersona
+    ports:
+      - "3000:8080"
+    environment:
+      MYSQL_HOST: basedatos1
+      MYSQL_DATABASE: basedatospersonas
+      MYSQL_USER: usuario1
+      MYSQL_PASS: secreto1
+    networks:
+      - red
+  apellidos:
+    container_name: conapellidos
+    depends_on:
+      - persona
+    image: imapellidos
+    build: servicioapellidos
+    ports:
+      - "80:8080"
+    environment:
+      HOST_PERSONA_JSON: persona
+      PORT_PERSONA_JSON: 8080
+      METHOD_PERSONA_JSON: damePersonaConId
+    networks:
+      - red
+networks:
+  red:
